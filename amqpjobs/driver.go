@@ -30,11 +30,12 @@ type Configurer interface {
 	Has(name string) bool
 }
 type Driver struct {
-	mu         sync.Mutex
-	log        *zap.Logger
-	pq         pq.Queue
-	pipeline   atomic.Pointer[jobs.Pipeline]
-	consumeAll bool
+	mu           sync.Mutex
+	log          *zap.Logger
+	pq           pq.Queue
+	pipeline     atomic.Pointer[jobs.Pipeline]
+	consumeAll   bool
+	publishPlain bool
 
 	// amqp connection notifiers
 	notifyCloseConnCh    chan *amqp.Error
@@ -109,10 +110,11 @@ func FromConfig(configKey string, log *zap.Logger, cfg Configurer, pipeline jobs
 	// PARSE CONFIGURATION END -------
 
 	jb := &Driver{
-		log:        log,
-		pq:         pq,
-		stopCh:     make(chan struct{}, 1),
-		consumeAll: conf.ConsumeAll,
+		log:          log,
+		pq:           pq,
+		stopCh:       make(chan struct{}, 1),
+		consumeAll:   conf.ConsumeAll,
+		publishPlain: conf.PublishPlain,
 
 		priority: conf.Priority,
 		delayed:  ptrTo(int64(0)),
@@ -228,6 +230,7 @@ func FromPipeline(pipeline jobs.Pipeline, log *zap.Logger, cfg Configurer, pq pq
 		notifyClosePubCh:     make(chan *amqp.Error, 1),
 
 		consumeAll:        pipeline.Bool(consumeAll, false),
+		publishPlain:      pipeline.Bool(publishPlain, false),
 		routingKey:        pipeline.String(routingKey, ""),
 		queue:             pipeline.String(queue, ""),
 		exchangeType:      pipeline.String(exchangeType, "direct"),
@@ -538,6 +541,19 @@ func (d *Driver) Stop(context.Context) error {
 	return nil
 }
 
+func (d *Driver) packMsg(msg *Item) (amqp.Table, error) {
+	var table amqp.Table
+	var err error
+
+	if d.publishPlain {
+		table, err = packPlain(msg)
+	} else {
+		table, err = pack(msg.ID(), msg)
+	}
+
+	return table, err
+}
+
 // handleItem
 func (d *Driver) handleItem(ctx context.Context, msg *Item) error {
 	const op = errors.Op("rabbitmq_handle_item")
@@ -548,8 +564,8 @@ func (d *Driver) handleItem(ctx context.Context, msg *Item) error {
 			d.publishChan <- pch
 		}()
 
-		// convert
-		table, err := pack(msg.ID(), msg)
+		// convert or set plain headers
+		table, err := d.packMsg(msg)
 		if err != nil {
 			return errors.E(op, err)
 		}

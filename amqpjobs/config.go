@@ -13,6 +13,7 @@ const (
 	queue         string = "queue"
 	routingKey    string = "routing_key"
 	consumeAll    string = "consume_all"
+	publishPlain  string = "publish_plain"
 	prefetch      string = "prefetch"
 	exclusive     string = "exclusive"
 	durable       string = "durable"
@@ -55,6 +56,7 @@ type config struct {
 
 	RoutingKey        string `mapstructure:"routing_key"`
 	ConsumeAll        bool   `mapstructure:"consume_all"`
+	PublishPlain      bool   `mapstructure:"publish_plain"`
 	Exclusive         bool   `mapstructure:"exclusive"`
 	Durable           bool   `mapstructure:"durable"`
 	DeleteQueueOnStop bool   `mapstructure:"delete_queue_on_stop"`

@@ -266,6 +266,15 @@ func pack(id string, j *Item) (amqp.Table, error) {
 	}, nil
 }
 
+// build plain headers
+func packPlain(j *Item) (amqp.Table, error) {
+	h := make(amqp.Table)
+	for header, value := range j.Headers {
+		h[header] = value
+	}
+	return h, nil
+}
+
 // unpack restores jobs.Options
 func (d *Driver) unpack(deliv amqp.Delivery) (*Item, error) {
 	item := &Item{
