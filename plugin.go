@@ -1,10 +1,10 @@
 package amqp
 
 import (
-	"github.com/roadrunner-server/amqp/v4/amqpjobs"
 	"github.com/roadrunner-server/api/v4/plugins/v1/jobs"
 	pq "github.com/roadrunner-server/api/v4/plugins/v1/priority_queue"
 	"github.com/roadrunner-server/errors"
+	"github.com/willypuzzle/amqp/v4/amqpjobs"
 	"go.uber.org/zap"
 )
 
