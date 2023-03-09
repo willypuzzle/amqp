@@ -245,7 +245,13 @@ func fromJob(job *jobs.Job) *Item {
 func packPlain(j *Item) (amqp.Table, error) {
 	h := make(amqp.Table)
 	for header, value := range j.Headers {
-		h[header] = value
+		var v any
+		if len(value) > 0 {
+			v = value[0]
+		} else {
+			v = nil
+		}
+		h[header] = v
 	}
 	return h, nil
 }
