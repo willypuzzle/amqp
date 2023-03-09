@@ -614,14 +614,7 @@ func (c *Consumer) handleItem(ctx context.Context, msg *Item) error {
 
 			return nil
 		}
-		// TODO remove debug
-		for l := range table {
-			s, ok := table[l].(string)
-			if !ok {
-				s = "failed"
-			}
-			fmt.Println(l, s)
-		}
+
 		err = pch.PublishWithContext(ctx, c.exchangeName, c.routingKey, false, false, amqp.Publishing{
 			Headers:      table,
 			ContentType:  contentType,
