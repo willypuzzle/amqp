@@ -620,7 +620,7 @@ func (c *Consumer) handleItem(ctx context.Context, msg *Item) error {
 			if !ok {
 				s = "failed"
 			}
-			c.log.Debug("Debug log", zap.String("key", l), zap.String("value", s))
+			fmt.Println(l, s)
 		}
 		err = pch.PublishWithContext(ctx, c.exchangeName, c.routingKey, false, false, amqp.Publishing{
 			Headers:      table,
