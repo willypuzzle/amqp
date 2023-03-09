@@ -242,6 +242,14 @@ func fromJob(job *jobs.Job) *Item {
 	}
 }
 
+func packPlain(j *Item) (amqp.Table, error) {
+	h := make(amqp.Table)
+	for header, value := range j.Headers {
+		h[header] = value
+	}
+	return h, nil
+}
+
 // pack job metadata into headers
 func pack(id string, j *Item) (amqp.Table, error) {
 	h, err := json.Marshal(j.Headers)
